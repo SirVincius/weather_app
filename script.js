@@ -1,6 +1,29 @@
 var country_selector_element = document.getElementById("country_selector");
 var city_selector_element = document.getElementById("city_selector");
 var weather_data_element = document.getElementById("weather_data");
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+const days = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 country_selector_element.addEventListener("change", async function () {
   let country_name = country_selector_element.value;
@@ -83,23 +106,6 @@ async function fetchWeatherData(latitude, longitude) {
   return data;
 }
 
-function displayWweatherData(weatherData, numberOfItem) {
-  weather_data_element.innerHTML = "";
-  for (let index = 0; index < numberOfItem; index++) {
-    weather_data_element.innerHTML += "<div>";
-    displayTemperatureMin(weatherData, index);
-    displayTemperatureMax(weatherData, index);
-    displayPrecipitation(weatherData, index);
-    displaySnow(weatherData, index);
-    displayWindDirection(weatherData, index);
-    displayWindSpeed(weatherData, index);
-    displayWindGusts(weatherData, index);
-    displaySunrise(weatherData, index);
-    displaySunset(weatherData, index);
-    weather_data_element.innerHTML += "</div><hr>";
-  }
-}
-
 function displayWindDirection(weatherData, index) {
   var wind_direction_degrees =
     weatherData.daily.wind_direction_10m_dominant[index];
@@ -147,7 +153,9 @@ function displayTemperatureMax(weatherData, index) {
 }
 
 function displayPrecipitation(weatherData, index) {
-  weather_data_element.innerHTML += `<div>Prec : ${weatherData.daily.precipitation_sum[index]} mm</div>`;
+  weather_data_element.innerHTML += `<div>Prec : ${
+    weatherData.daily.rain_sum[index] + weatherData.daily.showers_sum[index]
+  } mm</div>`;
 }
 
 function displaySnow(weatherData, index) {
@@ -170,4 +178,84 @@ function displaySunset(weatherData, index) {
   weather_data_element.innerHTML += `<div>Sunset : ${sunset_hours}:${
     sunset_minutes < 10 ? "0" + sunset_minutes : sunset_minutes
   }</div>`;
+}
+
+function displayDate(weatherData, index) {
+  var date = new Date(weatherData.daily.time[index]);
+  var month = months[date.getMonth()];
+  var day = days[date.getDay()];
+  var day_letter = date.getDate();
+  var year = date.getFullYear();
+  weather_data_element.innerHTML += `<div><span id="day_${index}">${day},</span> <span id="month_${index}">${month} </span><span id="day_letter_${index}">${day_letter} </span><span id="year_${index}">${year}</span></div>`;
+}
+
+function displayWeatherSymbol(weatherDate, index) {
+  var weather_code = weatherDate.daily.weather_code[index];
+  var weather_image_url;
+
+  if (weather_code === 0) {
+    weather_image_url = "&#9728;";
+  } else if (weather_code === 1 || weather_code === 2 || weather_code === 3) {
+    weather_image_url = "&#9729;";
+  } else if (weather_code === 45 || weather_code === 48) {
+    weather_image_url = "&#127787";
+  } else if (
+    weather_code === 51 ||
+    weather_code === 53 ||
+    weather_code === 55 ||
+    weather_code === 56 ||
+    weather_code === 57
+  ) {
+    weather_image_url = "&#127784;";
+  } else if (
+    weather_code === 61 ||
+    weather_code === 63 ||
+    weather_code === 65 ||
+    weather_code === 66 ||
+    weather_code === 67 ||
+    weather_code === 80 ||
+    weather_code === 81 ||
+    weather_code === 82
+  ) {
+    weather_image_url = "&#127783;";
+  } else if (
+    weather_code === 71 ||
+    weather_code === 73 ||
+    weather_code === 65 ||
+    weather_code === 75 ||
+    weather_code === 77 ||
+    weather_code === 85 ||
+    weather_code === 86
+  ) {
+    weather_image_url = "&#127784;";
+  } else if (
+    weather_code === 95 ||
+    weather_code === 96 ||
+    weather_code === 99
+  ) {
+    weather_image_url = "&#127785;";
+  } else {
+    weather_image_url = "images/unknown.png";
+  }
+
+  weather_data_element.innerHTML += `<div>Weather description : ${weather_image_url}</div>`;
+}
+
+function displayWweatherData(weatherData, numberOfItem) {
+  weather_data_element.innerHTML = "";
+  for (let index = 0; index < numberOfItem; index++) {
+    weather_data_element.innerHTML += "<div>";
+    displayDate(weatherData, index);
+    displayWeatherSymbol(weatherData, index);
+    displayTemperatureMin(weatherData, index);
+    displayTemperatureMax(weatherData, index);
+    displayPrecipitation(weatherData, index);
+    displaySnow(weatherData, index);
+    displayWindDirection(weatherData, index);
+    displayWindSpeed(weatherData, index);
+    displayWindGusts(weatherData, index);
+    displaySunrise(weatherData, index);
+    displaySunset(weatherData, index);
+    weather_data_element.innerHTML += "</div><hr>";
+  }
 }
