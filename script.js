@@ -27,7 +27,12 @@ const days = [
 
 country_selector_element.addEventListener("change", async function () {
   let country_name = country_selector_element.value;
-  let city_list = await fetchCityList(country_name);
+  const countryData = await fetchCityList(country_name);
+  console.log(countryData.cities);
+  let city_list = countryData.cities;
+  if ((city_list = [])) {
+    city_list.push(countryData);
+  }
   populateCitySelector(city_list);
 });
 
@@ -68,7 +73,7 @@ async function fetchCityList(countryName) {
   const response = await fetch("json/countries+cities.json");
   const data = await response.json();
   const country = data.find((country) => country.name === countryName);
-  return country.cities;
+  return country;
 }
 
 function populateCitySelector(cityList) {
@@ -88,6 +93,9 @@ async function fetchCityData() {
   const cityName = city_selector_element.value;
   const countryData = data.find((country) => country.name === countryName);
   const cityData = countryData.cities.find((city) => city.name === cityName);
+  if (cityData == undefined) {
+    return countryData;
+  }
   return cityData;
 }
 
