@@ -87,12 +87,63 @@ function displayWweatherData(weatherData, numberOfItem) {
   weather_data_element.innerHTML = "";
   for (let index = 0; index < numberOfItem; index++) {
     weather_data_element.innerHTML += "<div>";
+    displayTemperatureMin(weatherData, index);
+    displayTemperatureMax(weatherData, index);
     displayPrecipitation(weatherData, index);
     displaySnow(weatherData, index);
+    displayWindDirection(weatherData, index);
+    displayWindSpeed(weatherData, index);
+    displayWindGusts(weatherData, index);
     displaySunrise(weatherData, index);
     displaySunset(weatherData, index);
     weather_data_element.innerHTML += "</div><hr>";
   }
+}
+
+function displayWindDirection(weatherData, index) {
+  var wind_direction_degrees =
+    weatherData.daily.wind_direction_10m_dominant[index];
+  var wind_direction;
+
+  if (
+    (wind_direction_degrees >= 0 && wind_direction_degrees <= 22) ||
+    (wind_direction_degrees >= 338 && wind_direction_degrees <= 360)
+  ) {
+    wind_direction = "N";
+  } else if (wind_direction_degrees >= 23 && wind_direction_degrees <= 67) {
+    wind_direction = "NE";
+  } else if (wind_direction_degrees >= 68 && wind_direction_degrees <= 112) {
+    wind_direction = "E";
+  } else if (wind_direction_degrees >= 113 && wind_direction_degrees <= 157) {
+    wind_direction = "SE";
+  } else if (wind_direction_degrees >= 158 && wind_direction_degrees <= 202) {
+    wind_direction = "S";
+  } else if (wind_direction_degrees >= 203 && wind_direction_degrees <= 247) {
+    wind_direction = "SW";
+  } else if (wind_direction_degrees >= 248 && wind_direction_degrees <= 292) {
+    wind_direction = "W";
+  } else if (wind_direction_degrees >= 293 && wind_direction_degrees <= 337) {
+    wind_direction = "NW";
+  } else {
+    wind_direction = "Invalid direction"; // Optional fallback
+  }
+  weather_data_element.innerHTML += `<div>Wind direction : ${wind_direction}</div>`;
+}
+
+function displayWindSpeed(weatherData, index) {
+  weather_data_element.innerHTML += `<div>Wind speed : ${weatherData.daily.wind_speed_10m_max[index]} km/h</div>`;
+}
+
+function displayWindGusts(weatherData, index) {
+  weather_data_element.innerHTML += `<div>Wind gusts speed : ${weatherData.daily.wind_gusts_10m_max[index]} km/h</div>`;
+}
+
+function displayTemperatureMin(weatherData, index) {
+  weather_data_element.innerHTML += `<div>Temp (min) : ${weatherData.daily.temperature_2m_min[index]}&#176;C</div>`;
+}
+
+function displayTemperatureMax(weatherData, index) {
+  weather_data_element.innerHTML += `<div>Temp (max) : ${weatherData.daily.temperature_2m_max[index]}&#176;C</div>`;
 }
 
 function displayPrecipitation(weatherData, index) {
