@@ -1,36 +1,32 @@
 var country_selector_element = document.getElementById("country_selector");
 var city_selector_element = document.getElementById("city_selector");
 var weather_data_element = document.getElementById("weather_data");
+var daily_weather_container_element = document.getElementById(
+  "daily-weather-container"
+);
+
 const months = [
-  "January",
-  "February",
-  "March",
-  "April",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
   "May",
   "June",
   "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
+  "Aug",
+  "Sept",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
-const days = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
+const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 country_selector_element.addEventListener("change", async function () {
   let country_name = country_selector_element.value;
   const countryData = await fetchCityList(country_name);
-  console.log(countryData.cities);
   let city_list = countryData.cities;
-  if ((city_list = [])) {
+  // If a country has no city, then we use country data for name, latitude and longitude
+  if (city_list.length == 0) {
     city_list.push(countryData);
   }
   populateCitySelector(city_list);
@@ -42,7 +38,7 @@ city_selector_element.addEventListener("change", async function () {
   let longitude = getCityLongitude(cityData);
   const weatherData = await fetchWeatherData(latitude, longitude);
   console.log(weatherData);
-  displayWweatherData(weatherData, 7);
+  getDailyWeatherData(weatherData, 6);
 });
 
 window.onload = async function () {
@@ -81,7 +77,7 @@ function populateCitySelector(cityList) {
   cityList.forEach((city) => {
     let option = document.createElement("option");
     option.textContent = city.name;
-    option.value = city.name;
+    option.value = city.id;
     city_selector_element.appendChild(option);
   });
 }
@@ -90,9 +86,10 @@ async function fetchCityData() {
   const response = await fetch("json/countries+cities.json");
   const data = await response.json();
   const countryName = country_selector_element.value;
-  const cityName = city_selector_element.value;
+  const cityId = parseInt(city_selector_element.value);
   const countryData = data.find((country) => country.name === countryName);
-  const cityData = countryData.cities.find((city) => city.name === cityName);
+  const cityData = countryData.cities.find((city) => city.id === cityId);
+  // If a country had no city, the country data is used instead for name, latitude and longitude
   if (cityData == undefined) {
     return countryData;
   }
@@ -114,7 +111,7 @@ async function fetchWeatherData(latitude, longitude) {
   return data;
 }
 
-function displayWindDirection(weatherData, index) {
+function getWindDirection(weatherData, index) {
   var wind_direction_degrees =
     weatherData.daily.wind_direction_10m_dominant[index];
   var wind_direction;
@@ -141,129 +138,125 @@ function displayWindDirection(weatherData, index) {
   } else {
     wind_direction = "Invalid direction"; // Optional fallback
   }
-  weather_data_element.innerHTML += `<div>Wind direction : ${wind_direction}</div>`;
+  return wind_direction;
 }
 
-function displayWindSpeed(weatherData, index) {
-  weather_data_element.innerHTML += `<div>Wind speed : ${weatherData.daily.wind_speed_10m_max[index]} km/h</div>`;
+function getWindSpeed(weatherData, index) {
+  return Math.round(weatherData.daily.wind_speed_10m_max[index]);
 }
 
-function displayWindGusts(weatherData, index) {
-  weather_data_element.innerHTML += `<div>Wind gusts speed : ${weatherData.daily.wind_gusts_10m_max[index]} km/h</div>`;
+function getWindGusts(weatherData, index) {
+  return Math.round(weatherData.daily.wind_gusts_10m_max[index]);
 }
 
-function displayTemperatureMin(weatherData, index) {
-  weather_data_element.innerHTML += `<div>Temp (min) : ${weatherData.daily.temperature_2m_min[index]}&#176;C</div>`;
+function getTemperatureMin(weatherData, index) {
+  return Math.round(weatherData.daily.temperature_2m_min[index]);
 }
 
-function displayTemperatureMax(weatherData, index) {
-  weather_data_element.innerHTML += `<div>Temp (max) : ${weatherData.daily.temperature_2m_max[index]}&#176;C</div>`;
+function getTemperatureMax(weatherData, index) {
+  return Math.round(weatherData.daily.temperature_2m_max[index]);
 }
 
-function displayPrecipitation(weatherData, index) {
-  weather_data_element.innerHTML += `<div>Prec : ${
+function getPrecipitation(weatherData, index) {
+  return Math.round(
     weatherData.daily.rain_sum[index] + weatherData.daily.showers_sum[index]
-  } mm</div>`;
+  );
 }
 
-function displaySnow(weatherData, index) {
-  weather_data_element.innerHTML += `<div>Snow : ${weatherData.daily.snowfall_sum[index]} cm</div>`;
+function getSnow(weatherData, index) {
+  return Math.round(weatherData.daily.snowfall_sum[index]);
 }
 
-function displaySunrise(weatherData, index) {
+function getSunrise(weatherData, index) {
   const sunrise_date = new Date(weatherData.daily.sunrise[index]);
   let sunrise_hours = sunrise_date.getHours();
   let sunrise_minutes = sunrise_date.getMinutes();
-  weather_data_element.innerHTML += `<div>Sunrise : ${sunrise_hours}:${
+  return `${sunrise_hours}:${
     sunrise_minutes < 10 ? "0" + sunrise_minutes : sunrise_minutes
-  }</div>`;
+  }`;
 }
 
-function displaySunset(weatherData, index) {
+function getSunset(weatherData, index) {
   const sunset_date = new Date(weatherData.daily.sunset[index]);
   let sunset_hours = sunset_date.getHours();
   let sunset_minutes = sunset_date.getMinutes();
-  weather_data_element.innerHTML += `<div>Sunset : ${sunset_hours}:${
+  return `${sunset_hours}:${
     sunset_minutes < 10 ? "0" + sunset_minutes : sunset_minutes
-  }</div>`;
+  }`;
 }
 
-function displayDate(weatherData, index) {
+function getDate(weatherData, index) {
   var date = new Date(weatherData.daily.time[index]);
   var month = months[date.getMonth()];
   var day = days[date.getDay()];
   var day_letter = date.getDate();
   var year = date.getFullYear();
-  weather_data_element.innerHTML += `<div><span id="day_${index}">${day},</span> <span id="month_${index}">${month} </span><span id="day_letter_${index}">${day_letter} </span><span id="year_${index}">${year}</span></div>`;
+  return `${day}, ${month} ${day_letter} ${year}`;
 }
 
-function displayWeatherSymbol(weatherDate, index) {
+function getWeatherSymbol(weatherDate, index) {
   var weather_code = weatherDate.daily.weather_code[index];
-  var weather_image_url;
 
-  if (weather_code === 0) {
-    weather_image_url = "&#9728;";
-  } else if (weather_code === 1 || weather_code === 2 || weather_code === 3) {
-    weather_image_url = "&#9729;";
-  } else if (weather_code === 45 || weather_code === 48) {
-    weather_image_url = "&#127787";
-  } else if (
-    weather_code === 51 ||
-    weather_code === 53 ||
-    weather_code === 55 ||
-    weather_code === 56 ||
-    weather_code === 57
-  ) {
-    weather_image_url = "&#127784;";
-  } else if (
-    weather_code === 61 ||
-    weather_code === 63 ||
-    weather_code === 65 ||
-    weather_code === 66 ||
-    weather_code === 67 ||
-    weather_code === 80 ||
-    weather_code === 81 ||
-    weather_code === 82
-  ) {
-    weather_image_url = "&#127783;";
-  } else if (
-    weather_code === 71 ||
-    weather_code === 73 ||
-    weather_code === 65 ||
-    weather_code === 75 ||
-    weather_code === 77 ||
-    weather_code === 85 ||
-    weather_code === 86
-  ) {
-    weather_image_url = "&#127784;";
-  } else if (
-    weather_code === 95 ||
-    weather_code === 96 ||
-    weather_code === 99
-  ) {
-    weather_image_url = "&#127785;";
-  } else {
-    weather_image_url = "images/unknown.png";
-  }
+  const weatherCodeMap = new Map([
+    [0, "&#9728;"], // Clear
+    [1, "&#9729;"],
+    [2, "&#9729;"],
+    [3, "&#9729;"], // Cloudy
+    [45, "&#127787;"],
+    [48, "&#127787;"], // Fog
+    [51, "&#127784;"],
+    [53, "&#127784;"],
+    [55, "&#127784;"],
+    [56, "&#127784;"],
+    [57, "&#127784;"], // Drizzle
+    [61, "&#127783;"],
+    [63, "&#127783;"],
+    [65, "&#127783;"],
+    [66, "&#127783;"],
+    [67, "&#127783;"],
+    [80, "&#127783;"],
+    [81, "&#127783;"],
+    [82, "&#127783;"], // Rain
+    [71, "&#127784;"],
+    [73, "&#127784;"],
+    [75, "&#127784;"],
+    [77, "&#127784;"],
+    [85, "&#127784;"],
+    [86, "&#127784;"], // Snow
+    [95, "&#127785;"],
+    [96, "&#127785;"],
+    [99, "&#127785;"], // Thunderstorm
+  ]);
 
-  weather_data_element.innerHTML += `<div>Weather description : ${weather_image_url}</div>`;
+  return `${weatherCodeMap.get(weather_code)}`;
 }
 
-function displayWweatherData(weatherData, numberOfItem) {
-  weather_data_element.innerHTML = "";
+function getDailyWeatherData(weatherData, numberOfItem) {
+  daily_weather_container_element.innerHTML = "";
   for (let index = 0; index < numberOfItem; index++) {
-    weather_data_element.innerHTML += "<div>";
-    displayDate(weatherData, index);
-    displayWeatherSymbol(weatherData, index);
-    displayTemperatureMin(weatherData, index);
-    displayTemperatureMax(weatherData, index);
-    displayPrecipitation(weatherData, index);
-    displaySnow(weatherData, index);
-    displayWindDirection(weatherData, index);
-    displayWindSpeed(weatherData, index);
-    displayWindGusts(weatherData, index);
-    displaySunrise(weatherData, index);
-    displaySunset(weatherData, index);
-    weather_data_element.innerHTML += "</div><hr>";
+    const daily_weather = {};
+    daily_weather.date = getDate(weatherData, index);
+    daily_weather.weatherSymbol = getWeatherSymbol(weatherData, index);
+    daily_weather.temperatureMin = getTemperatureMin(weatherData, index);
+    daily_weather.temperatureMax = getTemperatureMax(weatherData, index);
+    daily_weather.precipitation = getPrecipitation(weatherData, index);
+    daily_weather.snow = getSnow(weatherData, index);
+    daily_weather.wind = getWindDirection(weatherData, index);
+    daily_weather.windSpeed = getWindSpeed(weatherData, index);
+    daily_weather.gustsSpeed = getWindGusts(weatherData, index);
+    daily_weather.sunrise = getSunrise(weatherData, index);
+    daily_weather.sunset = getSunset(weatherData, index);
+    console.log(daily_weather);
+
+    daily_weather_container_element.innerHTML += `<div class="daily-weather col-xl-2 col-lg-4 col-sm-6 col-12"><p><strong>${daily_weather.date}</strong></p>
+          <p class="text-left font-size-5rem">${daily_weather.weatherSymbol}</p>
+          <p class="text-left"><strong>Temp : </strong>${daily_weather.temperatureMax}&#8451; / ${daily_weather.temperatureMin}&#8451;</p>
+          <p class="text-left"><strong>Prec : </strong>${daily_weather.precipitation} mm</p>
+          <p class="text-left"><strong>Wind Dir. : </strong>${daily_weather.wind}</p>
+          <p class="text-left"><strong>Wind : </strong>${daily_weather.windSpeed} km/h</p>
+          <p class="text-left"><strong>Gusts : </strong>${daily_weather.gustsSpeed} km/h</p>
+          <p class="text-left"><strong>Sunrise : </strong>${daily_weather.sunrise}</p>
+          <p class="text-left"><strong>Sunset : </strong>${daily_weather.sunset}</p>
+        </div>`;
   }
 }

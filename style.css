@@ -1,3 +1,31 @@
+body {
+  background-color: rgb(200, 222, 255);
+}
+
 .form-select {
   width: 200px;
+}
+
+.day-container {
+  margin-top: 100px;
+  max-width: 1200px;
+}
+
+#main-container {
+  display: flex;
+  justify-content: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.font-size-5rem {
+  font-size: 5rem;
+  text-align: center;
+}
+
+.daily-weather {
+  border: 1px solid black;
+  box-sizing: border-box;
 }
