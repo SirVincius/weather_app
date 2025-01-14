@@ -4,6 +4,8 @@ var weather_data_element = document.getElementById("weather_data");
 var daily_weather_container_element = document.getElementById(
   "daily-weather-container"
 );
+var country_name_element = document.getElementById("country-name");
+var city_name_element = document.getElementById("city-name");
 
 const months = [
   "Jan",
@@ -38,6 +40,7 @@ city_selector_element.addEventListener("change", async function () {
   let longitude = getCityLongitude(cityData);
   const weatherData = await fetchWeatherData(latitude, longitude);
   console.log(weatherData);
+  displayCountryAndCityName();
   getDailyWeatherData(weatherData, 6);
 });
 
@@ -140,6 +143,9 @@ function getWindDirection(weatherData, index) {
   }
   return wind_direction;
 }
+function getName(weatherData, index) {
+  return undefined;
+}
 
 function getWindSpeed(weatherData, index) {
   return Math.round(weatherData.daily.wind_speed_10m_max[index]);
@@ -158,13 +164,20 @@ function getTemperatureMax(weatherData, index) {
 }
 
 function getPrecipitation(weatherData, index) {
-  return Math.round(
-    weatherData.daily.rain_sum[index] + weatherData.daily.showers_sum[index]
-  );
+  let amountOfPrecipitation =
+    weatherData.daily.rain_sum[index] + weatherData.daily.showers_sum[index];
+  if (amountOfPrecipitation > 0 && amountOfPrecipitation < 1) {
+    return ">1";
+  }
+  return Math.round(amountOfPrecipitation);
 }
 
 function getSnow(weatherData, index) {
-  return Math.round(weatherData.daily.snowfall_sum[index]);
+  let amountOfSnow = weatherData.daily.snowfall_sum[index];
+  if (amountOfSnow > 0 && amountOfSnow < 1) {
+    return ">1";
+  }
+  return Math.round(amountOfSnow);
 }
 
 function getSunrise(weatherData, index) {
@@ -231,6 +244,13 @@ function getWeatherSymbol(weatherDate, index) {
   return `${weatherCodeMap.get(weather_code)}`;
 }
 
+function displayCountryAndCityName() {
+  var countryName = country_selector_element.value;
+  var cityName = city_selector_element.selectedOptions[0].text;
+  city_name_element.innerHTML = `${cityName},`;
+  country_name_element.innerHTML = `${countryName}`;
+}
+
 function getDailyWeatherData(weatherData, numberOfItem) {
   daily_weather_container_element.innerHTML = "";
   for (let index = 0; index < numberOfItem; index++) {
@@ -248,10 +268,12 @@ function getDailyWeatherData(weatherData, numberOfItem) {
     daily_weather.sunset = getSunset(weatherData, index);
     console.log(daily_weather);
 
-    daily_weather_container_element.innerHTML += `<div class="daily-weather col-xl-2 col-lg-4 col-sm-6 col-12"><p><strong>${daily_weather.date}</strong></p>
+    daily_weather_container_element.innerHTML += `<div class="daily-weather col-xl-2 col-lg-4 col-sm-6 col-12">
+          <p><strong>${daily_weather.date}</strong></p>
           <p class="text-left font-size-5rem">${daily_weather.weatherSymbol}</p>
           <p class="text-left"><strong>Temp : </strong>${daily_weather.temperatureMax}&#8451; / ${daily_weather.temperatureMin}&#8451;</p>
           <p class="text-left"><strong>Prec : </strong>${daily_weather.precipitation} mm</p>
+          <p class="text-left"><strong>Snow : </strong>${daily_weather.snow} cm</p>
           <p class="text-left"><strong>Wind Dir. : </strong>${daily_weather.wind}</p>
           <p class="text-left"><strong>Wind : </strong>${daily_weather.windSpeed} km/h</p>
           <p class="text-left"><strong>Gusts : </strong>${daily_weather.gustsSpeed} km/h</p>
